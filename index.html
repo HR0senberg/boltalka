@@ -2,10 +2,17 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>P2P Чат</title>
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
-    /* Design System Variables */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     :root {
       --color-white: rgba(255, 255, 255, 1);
       --color-black: rgba(0, 0, 0, 1);
@@ -15,281 +22,305 @@
       --color-gray-300: rgba(167, 169, 169, 1);
       --color-gray-400: rgba(119, 124, 124, 1);
       --color-slate-500: rgba(98, 108, 113, 1);
-      --color-brown-600: rgba(94, 82, 64, 1);
       --color-charcoal-700: rgba(31, 33, 33, 1);
-      --color-charcoal-800: rgba(38, 40, 40, 1);
-      --color-slate-900: rgba(19, 52, 59, 1);
-      --color-teal-300: rgba(50, 184, 198, 1);
-      --color-teal-400: rgba(45, 166, 178, 1);
       --color-teal-500: rgba(33, 128, 141, 1);
       --color-teal-600: rgba(29, 116, 128, 1);
-      --color-teal-700: rgba(26, 104, 115, 1);
       --color-red-400: rgba(255, 84, 89, 1);
       --color-red-500: rgba(192, 21, 47, 1);
-      --color-orange-400: rgba(230, 129, 97, 1);
+      --color-green-500: rgba(34, 197, 94, 1);
       --color-orange-500: rgba(168, 75, 47, 1);
-      --color-brown-600-rgb: 94, 82, 64;
-      --color-teal-500-rgb: 33, 128, 141;
-      --color-slate-900-rgb: 19, 52, 59;
-      --color-background: var(--color-cream-50);
-      --color-surface: var(--color-cream-100);
-      --color-text: var(--color-slate-900);
-      --color-text-secondary: var(--color-slate-500);
-      --color-primary: var(--color-teal-500);
-      --color-primary-hover: var(--color-teal-600);
-      --color-primary-active: var(--color-teal-700);
-      --color-secondary: rgba(var(--color-brown-600-rgb), 0.12);
-      --color-secondary-hover: rgba(var(--color-brown-600-rgb), 0.2);
-      --color-border: rgba(var(--color-brown-600-rgb), 0.2);
-      --color-btn-primary-text: var(--color-cream-50);
-      --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
-      --color-error: var(--color-red-500);
-      --color-success: var(--color-teal-500);
-      --color-warning: var(--color-orange-500);
-      --font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      --font-size-sm: 12px;
-      --font-size-base: 14px;
-      --font-size-lg: 16px;
-      --font-size-xl: 18px;
-      --font-size-2xl: 20px;
-      --font-size-3xl: 24px;
-      --space-4: 4px;
-      --space-8: 8px;
-      --space-12: 12px;
-      --space-16: 16px;
-      --space-20: 20px;
-      --space-24: 24px;
-      --space-32: 32px;
-      --radius-base: 8px;
-      --radius-md: 10px;
-      --radius-lg: 12px;
-      --radius-full: 9999px;
-      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --color-gray-400-rgb: 119, 124, 124;
-        --color-teal-300-rgb: 50, 184, 198;
-        --color-gray-300-rgb: 167, 169, 169;
-        --color-gray-200-rgb: 245, 245, 245;
-        --color-background: var(--color-charcoal-700);
-        --color-surface: var(--color-charcoal-800);
-        --color-text: var(--color-gray-200);
-        --color-text-secondary: rgba(var(--color-gray-300-rgb), 0.7);
-        --color-primary: var(--color-teal-300);
-        --color-primary-hover: var(--color-teal-400);
-        --color-secondary: rgba(var(--color-gray-400-rgb), 0.15);
-        --color-secondary-hover: rgba(var(--color-gray-400-rgb), 0.25);
-        --color-border: rgba(var(--color-gray-400-rgb), 0.3);
-        --color-btn-primary-text: var(--color-slate-900);
-        --color-card-border: rgba(var(--color-gray-400-rgb), 0.2);
-        --color-error: var(--color-red-400);
-        --color-success: var(--color-teal-300);
-        --color-warning: var(--color-orange-400);
-      }
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
     }
 
     body {
-      font-family: var(--font-family-base);
-      background-color: var(--color-background);
-      color: var(--color-text);
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
-      width: 100%;
-      max-width: 100vw;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, var(--color-teal-500) 0%, var(--color-teal-600) 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      overflow: hidden;
     }
 
-    #app {
+    .app-container {
       width: 100%;
-      max-width: 100vw;
-      overflow-x: hidden;
+      max-width: 500px;
+      height: 100vh;
+      background: var(--color-white);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      position: relative;
     }
 
     .screen {
       display: none;
-      padding: var(--space-20);
-      min-height: 100vh;
+      flex: 1;
+      flex-direction: column;
+      padding: 20px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .screen.active {
       display: flex;
-      flex-direction: column;
+    }
+
+    /* Connection Screen */
+    #connectionScreen {
       align-items: center;
       justify-content: center;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 500px;
-      margin: 0 auto;
-    }
-
-    h1 {
-      font-size: var(--font-size-3xl);
-      font-weight: 600;
-      margin-bottom: var(--space-32);
       text-align: center;
-      color: var(--color-text);
+      gap: 20px;
     }
 
-    .btn-group {
+    .logo {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+
+    .title {
+      color: var(--color-charcoal-700);
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: var(--color-slate-500);
+      font-size: 14px;
+      margin-bottom: 30px;
+    }
+
+    .button-group {
       display: flex;
       flex-direction: column;
-      gap: var(--space-16);
+      gap: 12px;
       width: 100%;
     }
 
     .btn {
+      padding: 16px 24px;
       min-height: 48px;
-      padding: var(--space-16) var(--space-24);
-      font-size: var(--font-size-lg);
-      font-weight: 500;
       border: none;
-      border-radius: var(--radius-md);
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
-      text-align: center;
-      -webkit-tap-highlight-color: transparent;
+      transition: all 0.2s ease;
       touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
     }
 
     .btn-primary {
-      background: var(--color-primary);
-      color: var(--color-btn-primary-text);
+      background: var(--color-teal-500);
+      color: white;
+      box-shadow: 0 4px 12px rgba(33, 128, 141, 0.3);
     }
 
     .btn-primary:hover {
-      background: var(--color-primary-hover);
-    }
-
-    .btn-primary:active {
-      background: var(--color-primary-active);
-      transform: scale(0.98);
+      background: var(--color-teal-600);
     }
 
     .btn-secondary {
-      background: var(--color-secondary);
-      color: var(--color-text);
+      background: var(--color-gray-200);
+      color: var(--color-charcoal-700);
     }
 
     .btn-secondary:hover {
-      background: var(--color-secondary-hover);
+      background: var(--color-gray-300);
     }
 
-    .btn-secondary:active {
-      transform: scale(0.98);
+    .btn-danger {
+      background: var(--color-red-400);
+      color: white;
     }
 
-    .session-info {
-      background: var(--color-surface);
-      border: 1px solid var(--color-card-border);
-      border-radius: var(--radius-lg);
-      padding: var(--space-24);
-      margin-bottom: var(--space-24);
+    .btn-danger:hover {
+      background: var(--color-red-500);
+    }
+
+    /* Create Screen */
+    #createScreen {
+      align-items: center;
+      justify-content: center;
       text-align: center;
+      gap: 20px;
+    }
+
+    .session-code-container {
+      background: var(--color-gray-200);
+      padding: 20px;
+      border-radius: 10px;
+      width: 100%;
+    }
+
+    .session-code-label {
+      color: var(--color-slate-500);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      display: block;
     }
 
     .session-code {
-      font-size: var(--font-size-2xl);
-      font-weight: 600;
-      letter-spacing: 0.2em;
-      color: var(--color-primary);
-      margin: var(--space-16) 0;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--color-teal-500);
+      letter-spacing: 2px;
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      margin-top: 10px;
+      padding: 8px 16px;
+      background: var(--color-teal-500);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      min-height: 36px;
+    }
+
+    .copy-btn:active {
+      transform: scale(0.95);
     }
 
     #qrcode {
       display: flex;
+      align-items: center;
       justify-content: center;
-      margin: var(--space-24) 0;
+    }
+
+    .waiting-text {
+      color: var(--color-slate-500);
+      font-size: 14px;
+      margin-top: 20px;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid var(--color-gray-200);
+      border-top: 3px solid var(--color-teal-500);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Join Screen */
+    #joinScreen {
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
     }
 
     .input-group {
-      margin-bottom: var(--space-24);
       width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
     .input-label {
-      display: block;
-      font-size: var(--font-size-base);
-      font-weight: 500;
-      margin-bottom: var(--space-8);
-      color: var(--color-text);
+      color: var(--color-charcoal-700);
+      font-size: 14px;
+      font-weight: 600;
     }
 
-    .input {
-      width: 100%;
+    input[type="text"] {
+      padding: 14px 16px;
       min-height: 48px;
-      padding: var(--space-12) var(--space-16);
-      font-size: var(--font-size-lg);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-base);
-      background: var(--color-surface);
-      color: var(--color-text);
+      border: 2px solid var(--color-gray-200);
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: 'Monaco', 'Courier New', monospace;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 1px;
+      transition: border-color 0.2s ease;
     }
 
-    .input:focus {
-      outline: 2px solid var(--color-primary);
-      border-color: var(--color-primary);
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--color-teal-500);
+    }
+
+    .help-text {
+      color: var(--color-slate-500);
+      font-size: 12px;
+      margin-top: -8px;
     }
 
     /* Chat Screen */
     #chatScreen {
+      gap: 0;
       padding: 0;
-      height: 100vh;
-      justify-content: flex-start;
-    }
-
-    #chatScreen.active {
-      display: flex;
     }
 
     .chat-header {
-      width: 100%;
-      background: var(--color-surface);
-      border-bottom: 1px solid var(--color-card-border);
-      padding: var(--space-16) var(--space-20);
+      background: var(--color-teal-500);
+      color: white;
+      padding: 16px 20px;
+      flex-shrink: 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-shrink: 0;
+      min-height: 56px;
+    }
+
+    .chat-header-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .chat-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      height: 24px;
+      padding: 0 8px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
     }
 
     .status-indicator {
-      display: flex;
-      align-items: center;
-      gap: var(--space-8);
-      font-size: var(--font-size-base);
-      font-weight: 500;
-    }
-
-    .status-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      animation: pulse 2s ease-in-out infinite;
+      animation: pulse 2s infinite;
     }
 
-    .status-connected .status-dot {
-      background: var(--color-success);
+    .status-indicator.connected {
+      background: #4ade80;
+      animation: none;
     }
 
-    .status-reconnecting .status-dot {
-      background: var(--color-warning);
+    .status-indicator.reconnecting {
+      background: #fbbf24;
+      animation: pulse 1s infinite;
     }
 
-    .status-disconnected .status-dot,
-    .status-error .status-dot {
-      background: var(--color-error);
+    .status-indicator.disconnected {
+      background: #ef4444;
+      animation: none;
     }
 
     @keyframes pulse {
@@ -297,274 +328,412 @@
       50% { opacity: 0.5; }
     }
 
-    .btn-disconnect {
-      min-height: 36px;
-      padding: var(--space-8) var(--space-16);
-      font-size: var(--font-size-sm);
-      background: var(--color-error);
-      color: white;
-    }
-
-    .btn-disconnect:active {
-      opacity: 0.8;
-    }
-
     .messages-container {
       flex: 1;
       overflow-y: auto;
-      padding: var(--space-20);
+      -webkit-overflow-scrolling: touch;
+      padding: 16px 20px;
       display: flex;
       flex-direction: column;
-      gap: var(--space-12);
-      width: 100%;
+      gap: 12px;
+    }
+
+    .empty-state {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-slate-500);
+      font-size: 14px;
+      text-align: center;
     }
 
     .message {
-      max-width: 80%;
-      padding: var(--space-12) var(--space-16);
-      border-radius: var(--radius-md);
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-      word-break: break-word;
-      hyphens: auto;
-    }
-
-    .message-own {
-      align-self: flex-end;
-      background: var(--color-primary);
-      color: var(--color-btn-primary-text);
-      border-bottom-right-radius: var(--space-4);
-    }
-
-    .message-other {
-      align-self: flex-start;
-      background: var(--color-surface);
-      border: 1px solid var(--color-card-border);
-      color: var(--color-text);
-      border-bottom-left-radius: var(--space-4);
-    }
-
-    .message-time {
-      font-size: var(--font-size-sm);
-      opacity: 0.7;
-      margin-top: var(--space-4);
-    }
-
-    .reconnect-notice {
-      text-align: center;
-      padding: var(--space-12);
-      background: rgba(var(--color-teal-500-rgb), 0.1);
-      border: 1px solid var(--color-warning);
-      border-radius: var(--radius-base);
-      color: var(--color-warning);
-      font-size: var(--font-size-sm);
-      margin: var(--space-8) var(--space-20);
-    }
-
-    .input-bar {
-      width: 100%;
-      background: var(--color-surface);
-      border-top: 1px solid var(--color-card-border);
-      padding: var(--space-16) var(--space-20);
       display: flex;
-      gap: var(--space-12);
-      flex-shrink: 0;
+      flex-direction: column;
+      gap: 4px;
+      word-wrap: break-word;
+      word-break: break-word;
+      max-width: 100%;
     }
 
-    .message-input {
-      flex: 1;
-      min-height: 44px;
-      padding: var(--space-12) var(--space-16);
-      font-size: var(--font-size-base);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-full);
-      background: var(--color-background);
-      color: var(--color-text);
+    .message.own {
+      align-items: flex-end;
     }
 
-    .message-input:focus {
-      outline: 2px solid var(--color-primary);
-      border-color: var(--color-primary);
+    .message.other {
+      align-items: flex-start;
     }
 
-    .btn-send {
-      min-width: 48px;
-      min-height: 48px;
-      padding: var(--space-12);
-      background: var(--color-primary);
-      color: var(--color-btn-primary-text);
-      border-radius: var(--radius-full);
+    .message-header {
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-slate-500);
+    }
+
+    .message-sender {
       font-weight: 600;
     }
 
-    .btn-send:active {
+    .message-text {
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      word-wrap: break-word;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .message.own .message-text {
+      background: var(--color-teal-500);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.other .message-text {
+      background: var(--color-gray-200);
+      color: var(--color-charcoal-700);
+      border-bottom-left-radius: 4px;
+    }
+
+    .chat-input-area {
+      border-top: 1px solid var(--color-gray-200);
+      padding: 12px 16px;
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+      background: var(--color-white);
+      position: relative;
+      min-height: 60px;
+    }
+
+    #messageInput {
+      flex: 1;
+      padding: 12px 14px;
+      min-height: 44px;
+      border: 1px solid var(--color-gray-200);
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: inherit;
+      resize: none;
+      max-height: 100px;
+      transition: border-color 0.2s ease;
+    }
+
+    #messageInput:focus {
+      outline: none;
+      border-color: var(--color-teal-500);
+    }
+
+    .send-btn {
+      padding: 0 16px;
+      min-height: 44px;
+      background: var(--color-teal-500);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 16px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .send-btn:active {
       transform: scale(0.95);
     }
 
-    .error-message {
-      background: rgba(var(--color-teal-500-rgb), 0.1);
-      border: 1px solid var(--color-error);
-      border-radius: var(--radius-base);
-      padding: var(--space-16);
-      margin-bottom: var(--space-16);
-      color: var(--color-error);
-      text-align: center;
+    .disconnect-btn {
+      padding: 8px 12px;
+      background: transparent;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      opacity: 0.8;
     }
 
-    .btn-retry {
-      margin-top: var(--space-12);
+    .disconnect-btn:hover {
+      opacity: 1;
+    }
+
+    .back-btn {
+      padding: 8px 12px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--color-slate-500);
+      font-weight: 600;
       min-height: 44px;
-      padding: var(--space-12) var(--space-20);
     }
 
-    /* Mobile Optimizations */
+    .back-container {
+      display: flex;
+      justify-content: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .error-banner {
+      background: var(--color-red-400);
+      color: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      display: none;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .error-banner.show {
+      display: flex;
+    }
+
+    .error-banner-close {
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 20px;
+      background: none;
+      border: none;
+      color: white;
+      padding: 0;
+      margin-left: auto;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      flex-direction: column;
+    }
+
+    /* Responsive Design */
     @media (max-width: 768px) {
+      .app-container {
+        max-width: 100%;
+        height: 100vh;
+        border-radius: 0;
+      }
+
       .screen {
-        padding: var(--space-16);
+        padding: 16px;
       }
 
-      h1 {
-        font-size: var(--font-size-2xl);
-        margin-bottom: var(--space-24);
+      .title {
+        font-size: 24px;
       }
 
-      .session-info {
-        padding: var(--space-16);
+      .btn {
+        padding: 14px 20px;
+        min-height: 44px;
+        font-size: 15px;
       }
 
-      #qrcode canvas {
-        max-width: 150px !important;
-        height: auto !important;
+      #qrcode {
+        margin: 20px 0;
+      }
+
+      .message-text {
+        max-width: 90%;
+      }
+
+      .chat-header {
+        padding: 14px 16px;
+        min-height: 52px;
       }
 
       .messages-container {
-        padding: var(--space-16);
+        padding: 12px 16px;
       }
 
-      .message {
-        max-width: 85%;
-        font-size: var(--font-size-base);
+      .chat-input-area {
+        padding: 10px 12px;
+        min-height: 56px;
+      }
+
+      #messageInput {
+        min-height: 40px;
+      }
+
+      .send-btn {
+        min-height: 40px;
+        padding: 0 12px;
       }
     }
 
-    /* Desktop optimizations */
-    @media (min-width: 769px) {
-      .container {
-        max-width: 600px;
+    @media (max-width: 480px) {
+      :root {
+        font-size: 14px;
       }
 
-      #chatScreen .messages-container {
-        max-width: 800px;
-        margin: 0 auto;
+      .title {
+        font-size: 20px;
       }
 
-      #qrcode canvas {
-        max-width: 200px !important;
-        height: auto !important;
+      .session-code {
+        font-size: 20px;
+        letter-spacing: 1px;
+      }
+
+      #qrcode {
+        transform: scale(0.8);
+        margin: 10px 0;
+      }
+
+      .message-text {
+        max-width: 85%;
+        font-size: 14px;
+      }
+
+      .chat-header-title {
+        font-size: 14px;
+      }
+
+      .chat-status {
+        font-size: 11px;
+        padding: 0 6px;
       }
     }
   </style>
 </head>
 <body>
-  <div id="app">
+  <div class="app-container">
     <!-- Connection Screen -->
-    <div id="connectionScreen" class="screen active">
-      <div class="container">
-        <h1>P2P Чат</h1>
-        <div class="btn-group">
-          <button id="createBtn" class="btn btn-primary">Создать новую сессию</button>
-          <button id="joinBtn" class="btn btn-secondary">Присоединиться</button>
-        </div>
+    <div class="screen active" id="connectionScreen">
+      <div class="logo">💬</div>
+      <div class="title">P2P Чат</div>
+      <div class="subtitle">Безопасный текстовый чат через WebRTC</div>
+      
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="createSession()">
+          ✨ Создать новую сессию
+        </button>
+        <button class="btn btn-secondary" onclick="showJoinForm()">
+          🔗 Присоединиться
+        </button>
       </div>
     </div>
 
     <!-- Create Session Screen -->
-    <div id="createScreen" class="screen">
-      <div class="container">
-        <h1>Новая сессия</h1>
-        <div class="session-info">
-          <p>Код сессии:</p>
-          <div class="session-code" id="sessionCode">------</div>
-          <div id="qrcode"></div>
-          <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">Ожидание подключения...</p>
+    <div class="screen" id="createScreen">
+      <div class="back-container">
+        <button class="back-btn" onclick="backToConnection()">← Назад</button>
+      </div>
+      
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+        <div style="text-align: center;">
+          <div class="session-code-label">Код сессии</div>
+          <div class="session-code-container">
+            <div class="session-code" id="sessionCode">-</div>
+            <button class="copy-btn" onclick="copyCode()">Копировать код</button>
+          </div>
         </div>
-        <button id="backFromCreate" class="btn btn-secondary">Назад</button>
+
+        <div id="qrcode"></div>
+
+        <div class="waiting-text">
+          <div class="spinner"></div>
+          <div style="margin-top: 10px;">⏳ Ожидание подключения...</div>
+        </div>
       </div>
     </div>
 
     <!-- Join Session Screen -->
-    <div id="joinScreen" class="screen">
-      <div class="container">
-        <h1>Присоединиться</h1>
-        <div id="joinError" class="error-message" style="display: none;">
-          <div id="joinErrorText"></div>
-          <button id="retryBtn" class="btn btn-primary btn-retry" style="display: none;">Повторить попытку</button>
-        </div>
-        <div class="input-group">
-          <label class="input-label" for="sessionCodeInput">Код сессии</label>
-          <input type="text" id="sessionCodeInput" class="input" placeholder="Введите код" maxlength="6">
-        </div>
-        <div class="btn-group">
-          <button id="connectBtn" class="btn btn-primary">Подключиться</button>
-          <button id="backFromJoin" class="btn btn-secondary">Назад</button>
+    <div class="screen" id="joinScreen">
+      <div class="back-container">
+        <button class="back-btn" onclick="backToConnection()">← Назад</button>
+      </div>
+
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+        <div style="width: 100%; text-align: center;">
+          <h2 style="color: var(--color-charcoal-700); margin-bottom: 20px;">Присоединиться к сессии</h2>
+          
+          <div class="input-group">
+            <label class="input-label">Введите код сессии:</label>
+            <input type="text" id="joinCode" placeholder="XXXXXX" maxlength="6" autocomplete="off">
+            <div class="help-text">Попросите его у хозяина сессии</div>
+          </div>
+
+          <div class="button-group" style="margin-top: 20px;">
+            <button class="btn btn-primary" onclick="joinSession()">
+              Подключиться
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Chat Screen -->
-    <div id="chatScreen" class="screen">
+    <div class="screen" id="chatScreen">
       <div class="chat-header">
-        <div id="statusIndicator" class="status-indicator status-connected">
-          <span class="status-dot"></span>
+        <div class="chat-header-title">💬 Чат</div>
+        <div class="chat-status">
+          <div class="status-indicator connected" id="statusIndicator"></div>
           <span id="statusText">Соединено</span>
         </div>
-        <button id="disconnectBtn" class="btn btn-disconnect">Отключиться</button>
+        <button class="disconnect-btn" onclick="disconnect()">Отключиться</button>
       </div>
-      <div id="reconnectNotice" class="reconnect-notice" style="display: none;"></div>
-      <div id="messagesContainer" class="messages-container"></div>
-      <div class="input-bar">
-        <input type="text" id="messageInput" class="message-input" placeholder="Введите сообщение...">
-        <button id="sendBtn" class="btn btn-send">➤</button>
+
+      <div class="error-banner" id="errorBanner">
+        <span id="errorText"></span>
+        <button class="error-banner-close" onclick="closeErrorBanner()">✕</button>
+      </div>
+
+      <div class="messages-container" id="messages">
+        <div class="empty-state">Начните общение, отправив первое сообщение 👋</div>
+      </div>
+
+      <div class="chat-input-area">
+        <textarea id="messageInput" placeholder="Напишите сообщение..." rows="1"></textarea>
+        <button class="send-btn" onclick="sendMessage()">📤</button>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script>
-    // Global variables
+    // ========== APPLICATION STATE ==========
     let peer = null;
     let connection = null;
-    let myPeerId = null;
+    let myPeerId = '';
     let messages = [];
     let reconnectAttempts = 0;
-    let connectionStatus = 'disconnected';
-    let reconnectTimeout = null;
     let connectionTimeout = null;
     const MAX_RECONNECT_ATTEMPTS = 3;
+    const RECONNECT_DELAYS = [2000, 4000, 6000];
     const CONNECTION_TIMEOUT = 30000;
 
-    // DOM elements
-    let elements = {};
-
-    // Logging utility
-    function log(message, data = null) {
-      const timestamp = new Date().toISOString();
-      if (data) {
-        console.log(`[${timestamp}] ${message}`, data);
+    // ========== LOGGING & DEBUG ==========
+    function log(title, message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString('ru-RU');
+      const prefix = `[${timestamp}] [${title}]`;
+      
+      if (type === 'error') {
+        console.error(prefix, message);
+      } else if (type === 'warn') {
+        console.warn(prefix, message);
       } else {
-        console.log(`[${timestamp}] ${message}`);
+        console.log(prefix, message);
       }
     }
 
-    // Generate 6-character session code
-    function generateSessionCode() {
-      return Math.random().toString(36).substring(2, 8).toUpperCase();
+    // ========== UTILITY FUNCTIONS ==========
+    function generateCode() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let code = '';
+      for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
     }
 
-    // Screen switching
+    function formatTime(date) {
+      return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    }
+
     function showScreen(screenId) {
-      log(`Switching to screen: ${screenId}`);
       document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
       });
@@ -574,86 +743,59 @@
       }
     }
 
-    // Update status indicator
+    function showError(message, duration = 4000) {
+      const banner = document.getElementById('errorBanner');
+      const text = document.getElementById('errorText');
+      text.textContent = message;
+      banner.classList.add('show');
+      
+      if (duration > 0) {
+        setTimeout(() => {
+          banner.classList.remove('show');
+        }, duration);
+      }
+    }
+
+    function closeErrorBanner() {
+      document.getElementById('errorBanner').classList.remove('show');
+    }
+
     function updateStatus(status, text) {
-      connectionStatus = status;
-      log(`Status updated: ${status} - ${text}`);
+      const indicator = document.getElementById('statusIndicator');
+      const statusText = document.getElementById('statusText');
       
-      const statusIndicator = elements.statusIndicator;
-      const statusText = elements.statusText;
-      
-      if (!statusIndicator || !statusText) return;
-      
-      statusIndicator.className = 'status-indicator';
-      statusIndicator.classList.add(`status-${status}`);
+      indicator.className = `status-indicator ${status}`;
       statusText.textContent = text;
     }
 
-    // Show reconnect notice
-    function showReconnectNotice(text) {
-      const notice = elements.reconnectNotice;
-      if (notice) {
-        notice.textContent = text;
-        notice.style.display = 'block';
+    function copyCode() {
+      const code = document.getElementById('sessionCode').textContent;
+      if (code && code !== '-') {
+        navigator.clipboard.writeText(code).then(() => {
+          log('Copy', 'Code copied to clipboard');
+        }).catch(() => {
+          alert('Не удалось скопировать код');
+        });
       }
     }
 
-    function hideReconnectNotice() {
-      const notice = elements.reconnectNotice;
-      if (notice) {
-        notice.style.display = 'none';
-      }
-    }
-
-    // Error messages
-    function getErrorMessage(errorType) {
-      const errors = {
-        'network': 'Ошибка сети. Проверьте подключение к интернету.',
-        'peer-unavailable': 'Пользователь с таким кодом недоступен или не существует.',
-        'unavailable-id': 'Этот код уже занят. Попробуйте создать новую сессию.',
-        'invalid-id': 'Неверный формат кода сессии.',
-        'webrtc': 'Ошибка WebRTC соединения. Попробуйте переподключиться.',
-        'browser-incompatible': 'Ваш браузер не поддерживает WebRTC.',
-        'disconnected': 'Соединение потеряно.',
-        'server-error': 'Ошибка сервера. Попробуйте позже.',
-        'timeout': 'Превышено время ожидания подключения.',
-        'default': 'Произошла неизвестная ошибка. Попробуйте снова.'
-      };
-      return errors[errorType] || errors['default'];
-    }
-
-    // Show error in join screen
-    function showJoinError(errorType) {
-      log(`Showing join error: ${errorType}`);
-      const errorDiv = elements.joinError;
-      const errorText = elements.joinErrorText;
-      const retryBtn = elements.retryBtn;
-      
-      if (errorDiv && errorText) {
-        errorText.textContent = getErrorMessage(errorType);
-        errorDiv.style.display = 'block';
-        if (retryBtn) {
-          retryBtn.style.display = 'block';
+    // ========== PEER CONFIGURATION ==========
+    function getPeerConfig() {
+      return {
+        config: {
+          iceServers: [
+            { urls: ['stun:stun.l.google.com:19302'] },
+            { urls: ['stun:stun1.l.google.com:19302'] },
+            { urls: ['stun:stun2.l.google.com:19302'] },
+            { urls: ['stun:stun3.l.google.com:19302'] },
+            { urls: ['stun:stun4.l.google.com:19302'] }
+          ]
         }
-      }
+      };
     }
 
-    function hideJoinError() {
-      const errorDiv = elements.joinError;
-      if (errorDiv) {
-        errorDiv.style.display = 'none';
-      }
-    }
-
-    // Clean up resources
-    function cleanup() {
-      log('Cleaning up resources...');
-      
-      if (reconnectTimeout) {
-        clearTimeout(reconnectTimeout);
-        reconnectTimeout = null;
-      }
-      
+    // ========== CONNECTION CLEANUP ==========
+    function cleanupConnection() {
       if (connectionTimeout) {
         clearTimeout(connectionTimeout);
         connectionTimeout = null;
@@ -663,469 +805,502 @@
         try {
           connection.close();
         } catch (e) {
-          log('Error closing connection:', e);
+          log('Cleanup', 'Error closing connection: ' + e.message, 'warn');
         }
         connection = null;
       }
-      
-      if (peer && !peer.destroyed) {
+    }
+
+    function cleanupPeer() {
+      if (peer) {
         try {
           peer.destroy();
         } catch (e) {
-          log('Error destroying peer:', e);
+          log('Cleanup', 'Error destroying peer: ' + e.message, 'warn');
         }
         peer = null;
       }
-      
+    }
+
+    function backToConnection() {
+      cleanupConnection();
+      cleanupPeer();
       reconnectAttempts = 0;
       messages = [];
+      showScreen('connectionScreen');
+      log('Navigation', 'Returned to connection screen');
     }
 
-    // Setup connection event handlers
-    function setupConnection(conn) {
-      log('Setting up connection handlers');
-      
-      conn.on('open', () => {
-        log('Connection opened');
-        connection = conn;
-        reconnectAttempts = 0;
-        updateStatus('connected', '✓ Соединено');
-        hideReconnectNotice();
-        
-        if (connectionTimeout) {
-          clearTimeout(connectionTimeout);
-          connectionTimeout = null;
-        }
-        
-        showScreen('chatScreen');
-      });
-      
-      conn.on('data', (data) => {
-        log('Received message:', data);
-        addMessage(data, false);
-      });
-    }
-
-    // Reconnect with exponential backoff
-    function attemptReconnect(targetPeerId) {
-      if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-        log('Max reconnect attempts reached');
-        updateStatus('error', '❌ Нет соединения');
-        hideReconnectNotice();
-        return;
-      }
-      
-      reconnectAttempts++;
-      const delay = reconnectAttempts * 2000; // 2, 4, 6 seconds
-      
-      log(`Reconnect attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} in ${delay}ms`);
-      updateStatus('reconnecting', '⚠️ Переподключение...');
-      showReconnectNotice(`Попытка переподключения (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
-      
-      reconnectTimeout = setTimeout(() => {
-        if (!peer || peer.destroyed) {
-          log('Peer destroyed, cannot reconnect');
-          return;
-        }
-        
-        try {
-          connection = peer.connect(targetPeerId, {
-            reliable: true
-          });
-          
-          setupConnection(connection);
-          
-          connection.on('error', (err) => {
-            log('Reconnection error:', err);
-            attemptReconnect(targetPeerId);
-          });
-          
-          connection.on('close', () => {
-            log('Reconnection closed');
-            if (connectionStatus === 'connected') {
-              attemptReconnect(targetPeerId);
-            }
-          });
-        } catch (error) {
-          log('Error during reconnect:', error);
-          attemptReconnect(targetPeerId);
-        }
-      }, delay);
-    }
-
-    // Create new session
+    // ========== SESSION CREATION ==========
     function createSession() {
-      log('Creating new session...');
-      cleanup();
-      
-      // Check for double creation
-      if (peer && !peer.destroyed) {
-        log('Peer already exists, returning');
+      if (peer) {
+        log('CreateSession', 'Session already exists', 'warn');
         return;
       }
-      
-      myPeerId = generateSessionCode();
-      log(`Generated peer ID: ${myPeerId}`);
-      
-      // Multiple STUN servers for better NAT traversal
-      peer = new Peer(myPeerId, {
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' },
-            { urls: 'stun:stun.services.mozilla.com' },
-            { urls: 'stun:stun.stunprotocol.org:3478' }
-          ]
-        }
-      });
-      
-      peer.on('open', (id) => {
-        log(`Peer opened with ID: ${id}`);
-        elements.sessionCode.textContent = id;
-        
-        // Generate QR code with proper colors
-        const qrcodeDiv = elements.qrcode;
-        qrcodeDiv.innerHTML = '';
-        
-        const bgColor = getComputedStyle(document.documentElement)
-          .getPropertyValue('--color-charcoal-700').trim() || '#1f2121';
-        const fgColor = getComputedStyle(document.documentElement)
-          .getPropertyValue('--color-cream-100').trim() || '#fffffd';
-        
-        new QRCode(qrcodeDiv, {
-          text: id,
-          width: 200,
-          height: 200,
-          colorDark: bgColor,
-          colorLight: fgColor
-        });
-        
-        showScreen('createScreen');
-      });
-      
-      peer.on('connection', (conn) => {
-        log('Incoming connection received');
-        setupConnection(conn);
-        
-        // Add event handlers outside setupConnection
-        conn.on('close', () => {
-          log('Connection closed by peer');
-          if (connectionStatus === 'connected') {
-            updateStatus('disconnected', '⚠️ Соединение потеряно');
-            attemptReconnect(conn.peer);
-          }
-        });
-        
-        conn.on('error', (err) => {
-          log('Connection error:', err);
-          updateStatus('error', '❌ Ошибка соединения');
-          attemptReconnect(conn.peer);
-        });
-      });
-      
-      peer.on('disconnected', () => {
-        log('Peer disconnected from server');
-        updateStatus('reconnecting', '⚠️ Переподключение к серверу...');
-        
-        if (!peer.destroyed) {
-          setTimeout(() => {
-            if (peer && !peer.destroyed) {
-              log('Attempting to reconnect to signaling server');
-              peer.reconnect();
-            }
-          }, 1000);
-        }
-      });
-      
-      peer.on('error', (err) => {
-        log('Peer error:', err);
-        let errorType = 'default';
-        
-        if (err.type === 'unavailable-id') {
-          errorType = 'unavailable-id';
-        } else if (err.type === 'network') {
-          errorType = 'network';
-        } else if (err.type === 'server-error') {
-          errorType = 'server-error';
-        } else if (err.type === 'browser-incompatible') {
-          errorType = 'browser-incompatible';
-        }
-        
-        alert(getErrorMessage(errorType));
-        cleanup();
-        showScreen('connectionScreen');
-      });
-    }
 
-    // Join existing session
-    function joinSession(sessionCode) {
-      log(`Joining session: ${sessionCode}`);
-      cleanup();
-      hideJoinError();
+      log('CreateSession', 'Cleaning up existing resources');
+      cleanupConnection();
+      cleanupPeer();
+
+      const code = generateCode();
+      myPeerId = code;
+
+      log('CreateSession', `Creating session with ID: ${code}`);
       
-      if (!sessionCode || sessionCode.length !== 6) {
-        showJoinError('invalid-id');
-        return;
-      }
-      
-      // Check for double creation
-      if (peer && !peer.destroyed) {
-        log('Peer already exists, returning');
-        return;
-      }
-      
-      myPeerId = generateSessionCode();
-      log(`Generated peer ID for joining: ${myPeerId}`);
-      
-      // Multiple STUN servers
-      peer = new Peer(myPeerId, {
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' },
-            { urls: 'stun:stun.services.mozilla.com' },
-            { urls: 'stun:stun.stunprotocol.org:3478' }
-          ]
-        }
-      });
-      
-      peer.on('open', (id) => {
-        log(`Peer opened, connecting to: ${sessionCode}`);
-        
-        connection = peer.connect(sessionCode, {
-          reliable: true
-        });
-        
-        // Set connection timeout
-        connectionTimeout = setTimeout(() => {
-          log('Connection timeout');
-          if (connectionStatus !== 'connected') {
-            showJoinError('timeout');
-            cleanup();
-          }
-        }, CONNECTION_TIMEOUT);
-        
-        setupConnection(connection);
-        
-        // Add event handlers outside setupConnection
-        connection.on('close', () => {
-          log('Connection closed');
-          if (connectionStatus === 'connected') {
-            updateStatus('disconnected', '⚠️ Соединение потеряно');
-            attemptReconnect(sessionCode);
-          }
-        });
-        
-        connection.on('error', (err) => {
-          log('Connection error during join:', err);
+      try {
+        peer = new Peer(code, getPeerConfig());
+
+        // Connection open
+        peer.on('open', (id) => {
+          log('CreateSession', `Peer created with ID: ${id}`);
+          document.getElementById('sessionCode').textContent = code;
           
-          let errorType = 'default';
-          if (err.type === 'peer-unavailable') {
-            errorType = 'peer-unavailable';
-          } else if (err.type === 'network') {
-            errorType = 'network';
-          } else if (err.type === 'webrtc') {
-            errorType = 'webrtc';
+          // Generate QR code
+          const qrContainer = document.getElementById('qrcode');
+          qrContainer.innerHTML = '';
+          
+          try {
+            new QRCode(qrContainer, {
+              text: code,
+              width: 150,
+              height: 150,
+              colorDark: '#1f2121',
+              colorLight: '#fffffd'
+            });
+          } catch (e) {
+            log('CreateSession', 'Error generating QR code: ' + e.message, 'error');
+          }
+
+          showScreen('createScreen');
+        });
+
+        // Incoming connection from peer
+        peer.on('connection', (conn) => {
+          log('CreateSession', 'Incoming connection received');
+          
+          if (connection) {
+            log('CreateSession', 'Already connected, rejecting new connection');
+            conn.close();
+            return;
+          }
+
+          connection = conn;
+          reconnectAttempts = 0;
+          setupConnection(connection);
+          showScreen('chatScreen');
+          updateStatus('connected', 'Соединено');
+        });
+
+        // Error handler
+        peer.on('error', (err) => {
+          log('CreateSession', `Peer error: ${err.type} - ${err.message}`, 'error');
+          
+          let message = 'Ошибка подключения';
+          switch (err.type) {
+            case 'unavailable-id':
+              message = '❌ ID занят. Попробуйте создать новую сессию';
+              break;
+            case 'network':
+              message = '⚠️ Проблема с интернетом';
+              break;
+            case 'invalid-id':
+              message = '❌ Неверный ID';
+              break;
+            default:
+              message = `❌ Ошибка: ${err.message}`;
           }
           
-          showJoinError(errorType);
-          cleanup();
+          showError(message);
+          backToConnection();
         });
-      });
-      
-      peer.on('disconnected', () => {
-        log('Peer disconnected from server during join');
-        
-        if (!peer.destroyed) {
-          setTimeout(() => {
-            if (peer && !peer.destroyed) {
-              log('Attempting to reconnect to signaling server');
-              peer.reconnect();
-            }
-          }, 1000);
-        }
-      });
-      
-      peer.on('error', (err) => {
-        log('Peer error during join:', err);
-        let errorType = 'default';
-        
-        if (err.type === 'unavailable-id') {
-          errorType = 'unavailable-id';
-        } else if (err.type === 'network') {
-          errorType = 'network';
-        } else if (err.type === 'server-error') {
-          errorType = 'server-error';
-        } else if (err.type === 'browser-incompatible') {
-          errorType = 'browser-incompatible';
-        }
-        
-        showJoinError(errorType);
-        cleanup();
-      });
+
+        peer.on('disconnected', () => {
+          log('CreateSession', 'Peer disconnected from server', 'warn');
+          if (connection && connection.open) {
+            log('CreateSession', 'Data connection still open');
+            updateStatus('reconnecting', 'Переподключение...');
+          }
+        });
+
+      } catch (e) {
+        log('CreateSession', `Failed to create peer: ${e.message}`, 'error');
+        showError('❌ Ошибка при создании сессии: ' + e.message);
+        backToConnection();
+      }
     }
 
-    // Add message to chat
-    function addMessage(text, isOwn) {
-      const time = new Date().toLocaleTimeString('ru-RU', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      });
+    // ========== SESSION JOINING ==========
+    function showJoinForm() {
+      document.getElementById('joinCode').value = '';
+      showScreen('joinScreen');
+      setTimeout(() => document.getElementById('joinCode').focus(), 100);
+    }
+
+    function joinSession() {
+      const code = document.getElementById('joinCode').value.trim().toUpperCase();
+
+      if (!code) {
+        showError('⚠️ Введите код сессии');
+        return;
+      }
+
+      if (code.length !== 6) {
+        showError('⚠️ Код должен состоять из 6 символов');
+        return;
+      }
+
+      if (peer) {
+        log('JoinSession', 'Peer already exists', 'warn');
+        return;
+      }
+
+      log('JoinSession', 'Cleaning up existing resources');
+      cleanupConnection();
+      cleanupPeer();
+
+      myPeerId = 'PEER_' + generateCode();
       
-      messages.push({ text, isOwn, time });
+      log('JoinSession', `Joining session: ${code}, my ID: ${myPeerId}`);
+      
+      try {
+        peer = new Peer(myPeerId, getPeerConfig());
+
+        peer.on('open', (id) => {
+          log('JoinSession', `Peer opened with ID: ${id}`);
+          
+          updateStatus('reconnecting', 'Подключение...');
+          showScreen('chatScreen');
+
+          // Set connection timeout
+          connectionTimeout = setTimeout(() => {
+            log('JoinSession', 'Connection timeout', 'warn');
+            showError('⚠️ Превышено время ожидания подключения');
+            cleanupConnection();
+            updateStatus('disconnected', 'Ошибка подключения');
+          }, CONNECTION_TIMEOUT);
+
+          try {
+            connection = peer.connect(code, { reliable: true });
+
+            connection.on('open', () => {
+              log('JoinSession', 'Connection established');
+              if (connectionTimeout) {
+                clearTimeout(connectionTimeout);
+                connectionTimeout = null;
+              }
+              reconnectAttempts = 0;
+              setupConnection(connection);
+              updateStatus('connected', 'Соединено');
+              messages = [];
+              renderMessages();
+            });
+
+            connection.on('error', (err) => {
+              log('JoinSession', `Connection error: ${err.type} - ${err.message}`, 'error');
+              if (connectionTimeout) {
+                clearTimeout(connectionTimeout);
+                connectionTimeout = null;
+              }
+              handleConnectionError(err, code);
+            });
+
+            connection.on('close', () => {
+              log('JoinSession', 'Connection closed', 'warn');
+              if (connectionTimeout) {
+                clearTimeout(connectionTimeout);
+                connectionTimeout = null;
+              }
+              handleConnectionClose(code);
+            });
+
+          } catch (e) {
+            log('JoinSession', `Failed to create connection: ${e.message}`, 'error');
+            showError('❌ Ошибка при подключении: ' + e.message);
+            backToConnection();
+          }
+        });
+
+        peer.on('error', (err) => {
+          log('JoinSession', `Peer error: ${err.type} - ${err.message}`, 'error');
+          if (connectionTimeout) {
+            clearTimeout(connectionTimeout);
+            connectionTimeout = null;
+          }
+          
+          let message = 'Ошибка подключения';
+          switch (err.type) {
+            case 'peer-unavailable':
+              message = '❌ Участник не найден. Проверьте код сессии';
+              break;
+            case 'network':
+              message = '⚠️ Проблема с интернетом. Проверьте подключение';
+              break;
+            case 'browser-incompatible':
+              message = '❌ Браузер не поддерживает WebRTC';
+              break;
+            default:
+              message = `❌ Ошибка: ${err.message}`;
+          }
+          
+          showError(message);
+          backToConnection();
+        });
+
+        peer.on('disconnected', () => {
+          log('JoinSession', 'Peer disconnected from server', 'warn');
+        });
+
+      } catch (e) {
+        log('JoinSession', `Failed to create peer: ${e.message}`, 'error');
+        showError('❌ Ошибка при инициализации: ' + e.message);
+        backToConnection();
+      }
+    }
+
+    function handleConnectionError(err, peerId) {
+      log('HandleError', `Connection error type: ${err.type}`, 'error');
+      
+      if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+        reconnectAttempts++;
+        const delay = RECONNECT_DELAYS[reconnectAttempts - 1];
+        
+        log('HandleError', `Attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}, delay: ${delay}ms`);
+        updateStatus('reconnecting', `Переподключение (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
+        
+        setTimeout(() => {
+          if (peer && peer.open) {
+            try {
+              log('HandleError', 'Attempting to reconnect');
+              const newConnection = peer.connect(peerId, { reliable: true });
+              
+              newConnection.on('open', () => {
+                log('HandleError', 'Reconnection successful');
+                connection = newConnection;
+                reconnectAttempts = 0;
+                setupConnection(newConnection);
+                updateStatus('connected', 'Соединено');
+              });
+
+              newConnection.on('error', (e) => {
+                log('HandleError', 'Reconnection failed: ' + e.message, 'error');
+                connection = newConnection;
+                handleConnectionError(e, peerId);
+              });
+
+              newConnection.on('close', () => {
+                log('HandleError', 'Reconnection closed');
+                handleConnectionClose(peerId);
+              });
+
+            } catch (e) {
+              log('HandleError', 'Reconnection error: ' + e.message, 'error');
+              handleConnectionError(e, peerId);
+            }
+          }
+        }, delay);
+      } else {
+        log('HandleError', 'Max reconnection attempts reached', 'error');
+        showError('❌ Не удалось подключиться. Проверьте код и попробуйте снова.');
+        updateStatus('disconnected', 'Ошибка подключения');
+      }
+    }
+
+    function handleConnectionClose(peerId) {
+      log('HandleClose', 'Connection closed, attempting to reconnect');
+      reconnectAttempts = 0;
+      
+      if (peer && peer.open) {
+        try {
+          updateStatus('reconnecting', 'Переподключение...');
+          const newConnection = peer.connect(peerId, { reliable: true });
+          
+          newConnection.on('open', () => {
+            log('HandleClose', 'Reconnection successful');
+            connection = newConnection;
+            setupConnection(newConnection);
+            updateStatus('connected', 'Соединено');
+          });
+
+          newConnection.on('error', (err) => {
+            log('HandleClose', 'Reconnection error: ' + err.message, 'error');
+            connection = newConnection;
+            handleConnectionError(err, peerId);
+          });
+
+          newConnection.on('close', () => {
+            log('HandleClose', 'Reconnection closed again');
+            handleConnectionClose(peerId);
+          });
+
+        } catch (e) {
+          log('HandleClose', 'Failed to reconnect: ' + e.message, 'error');
+          showError('⚠️ Соединение разорвано');
+          updateStatus('disconnected', 'Отключено');
+        }
+      }
+    }
+
+    // ========== CONNECTION SETUP ==========
+    function setupConnection(conn) {
+      log('SetupConnection', 'Setting up connection handlers');
+
+      conn.on('data', (data) => {
+        log('SetupConnection', `Received message: ${data.text}`);
+        if (data && data.text) {
+          addMessage(data.text, false, data.time);
+        }
+      });
+
+      conn.on('error', (err) => {
+        log('SetupConnection', `Connection error: ${err.type} - ${err.message}`, 'error');
+        showError('⚠️ Ошибка соединения: ' + err.message);
+      });
+
+      conn.on('close', () => {
+        log('SetupConnection', 'Connection closed');
+        updateStatus('disconnected', 'Отключено');
+        showError('⚠️ Соединение разорвано');
+      });
+
+      messages = [];
       renderMessages();
     }
 
-    // Render all messages
+    // ========== MESSAGING ==========
+    function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+
+      if (!text) {
+        return;
+      }
+
+      if (!connection || !connection.open) {
+        log('SendMessage', 'Connection not open', 'warn');
+        showError('⚠️ Нет соединения');
+        return;
+      }
+
+      const time = new Date();
+      const messageData = {
+        text: text,
+        time: time.toISOString()
+      };
+
+      try {
+        log('SendMessage', `Sending: ${text}`);
+        connection.send(messageData);
+        addMessage(text, true, messageData.time);
+        input.value = '';
+        input.style.height = 'auto';
+      } catch (e) {
+        log('SendMessage', `Failed to send: ${e.message}`, 'error');
+        showError('❌ Ошибка при отправке сообщения');
+      }
+    }
+
+    function addMessage(text, isOwn, timeString) {
+      messages.push({
+        text: text,
+        isOwn: isOwn,
+        time: new Date(timeString)
+      });
+      renderMessages();
+    }
+
     function renderMessages() {
-      const container = elements.messagesContainer;
-      if (!container) return;
-      
+      const container = document.getElementById('messages');
+
+      if (messages.length === 0) {
+        container.innerHTML = '<div class="empty-state">Начните общение, отправив первое сообщение 👋</div>';
+        return;
+      }
+
       container.innerHTML = '';
-      
+
       messages.forEach(msg => {
         const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${msg.isOwn ? 'message-own' : 'message-other'}`;
-        
+        messageDiv.className = `message ${msg.isOwn ? 'own' : 'other'}`;
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'message-header';
+
+        const senderSpan = document.createElement('span');
+        senderSpan.className = 'message-sender';
+        senderSpan.textContent = msg.isOwn ? 'Вы' : 'Собеседник';
+
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'message-time';
+        timeSpan.textContent = formatTime(msg.time);
+
+        headerDiv.appendChild(senderSpan);
+        headerDiv.appendChild(timeSpan);
+
         const textDiv = document.createElement('div');
+        textDiv.className = 'message-text';
         textDiv.textContent = msg.text;
-        
-        const timeDiv = document.createElement('div');
-        timeDiv.className = 'message-time';
-        timeDiv.textContent = msg.time;
-        
+
+        messageDiv.appendChild(headerDiv);
         messageDiv.appendChild(textDiv);
-        messageDiv.appendChild(timeDiv);
+
         container.appendChild(messageDiv);
       });
-      
-      // Scroll to bottom
-      container.scrollTop = container.scrollHeight;
+
+      // Auto scroll to bottom
+      setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+      }, 0);
     }
 
-    // Send message
-    function sendMessage() {
-      const input = elements.messageInput;
-      if (!input) return;
-      
-      const text = input.value.trim();
-      if (!text || !connection) return;
-      
-      log(`Sending message: ${text}`);
-      connection.send(text);
-      addMessage(text, true);
-      input.value = '';
-    }
-
-    // Disconnect
+    // ========== DISCONNECT ==========
     function disconnect() {
-      log('User initiated disconnect');
-      cleanup();
-      showScreen('connectionScreen');
+      if (confirm('Вы уверены, что хотите отключиться?')) {
+        log('Disconnect', 'User initiated disconnect');
+        backToConnection();
+      }
     }
 
-    // Initialize app
+    // ========== AUTO-RESIZE TEXTAREA ==========
+    function autoResizeTextarea() {
+      const textarea = document.getElementById('messageInput');
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+    }
+
+    // ========== EVENT LISTENERS & INITIALIZATION ==========
     document.addEventListener('DOMContentLoaded', () => {
-      log('App initialized');
-      
-      // Cache DOM elements with validation
-      elements = {
-        createBtn: document.getElementById('createBtn'),
-        joinBtn: document.getElementById('joinBtn'),
-        backFromCreate: document.getElementById('backFromCreate'),
-        backFromJoin: document.getElementById('backFromJoin'),
-        sessionCode: document.getElementById('sessionCode'),
-        qrcode: document.getElementById('qrcode'),
-        sessionCodeInput: document.getElementById('sessionCodeInput'),
-        connectBtn: document.getElementById('connectBtn'),
-        retryBtn: document.getElementById('retryBtn'),
-        joinError: document.getElementById('joinError'),
-        joinErrorText: document.getElementById('joinErrorText'),
-        statusIndicator: document.getElementById('statusIndicator'),
-        statusText: document.getElementById('statusText'),
-        reconnectNotice: document.getElementById('reconnectNotice'),
-        messagesContainer: document.getElementById('messagesContainer'),
-        messageInput: document.getElementById('messageInput'),
-        sendBtn: document.getElementById('sendBtn'),
-        disconnectBtn: document.getElementById('disconnectBtn')
-      };
-      
-      // Validate elements exist before adding listeners
-      if (elements.createBtn) {
-        elements.createBtn.addEventListener('click', createSession);
-      }
-      
-      if (elements.joinBtn) {
-        elements.joinBtn.addEventListener('click', () => showScreen('joinScreen'));
-      }
-      
-      if (elements.backFromCreate) {
-        elements.backFromCreate.addEventListener('click', () => {
-          cleanup();
-          showScreen('connectionScreen');
-        });
-      }
-      
-      if (elements.backFromJoin) {
-        elements.backFromJoin.addEventListener('click', () => {
-          cleanup();
-          showScreen('connectionScreen');
-        });
-      }
-      
-      if (elements.connectBtn) {
-        elements.connectBtn.addEventListener('click', () => {
-          const code = elements.sessionCodeInput?.value.trim().toUpperCase();
-          if (code) {
-            joinSession(code);
-          }
-        });
-      }
-      
-      if (elements.retryBtn) {
-        elements.retryBtn.addEventListener('click', () => {
-          const code = elements.sessionCodeInput?.value.trim().toUpperCase();
-          if (code) {
-            joinSession(code);
-          }
-        });
-      }
-      
-      if (elements.sessionCodeInput) {
-        elements.sessionCodeInput.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-            elements.connectBtn?.click();
-          }
-        });
-      }
-      
-      if (elements.sendBtn) {
-        elements.sendBtn.addEventListener('click', sendMessage);
-      }
-      
-      if (elements.messageInput) {
-        elements.messageInput.addEventListener('keypress', (e) => {
+      log('Init', 'Application initialized');
+
+      const messageInput = document.getElementById('messageInput');
+      if (messageInput) {
+        messageInput.addEventListener('keypress', (e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             sendMessage();
           }
         });
-        
-        // Auto-scroll to input on focus (mobile)
-        elements.messageInput.addEventListener('focus', () => {
-          setTimeout(() => {
-            elements.messageInput?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          }, 300);
+
+        messageInput.addEventListener('input', autoResizeTextarea);
+      }
+
+      const joinInput = document.getElementById('joinCode');
+      if (joinInput) {
+        joinInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            joinSession();
+          }
+        });
+
+        joinInput.addEventListener('input', (e) => {
+          e.target.value = e.target.value.toUpperCase();
         });
       }
-      
-      if (elements.disconnectBtn) {
-        elements.disconnectBtn.addEventListener('click', disconnect);
-      }
-      
-      log('Event listeners attached');
+    });
+
+    // Prevent memory leaks on page unload
+    window.addEventListener('beforeunload', () => {
+      cleanupConnection();
+      cleanupPeer();
     });
   </script>
 </body>
